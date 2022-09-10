@@ -45,9 +45,11 @@ class Router {
             handle: (callback: (_: z.infer<typeof inputType>) => Response) => {
                 executionList.push((input, _) => callback(input))
 
+                let result: any = undefined;
+
                 app[method](path, ...(executionList.map(m => {
                     return async (req: any, res: any, next: polka.Next) => {
-                        const result = inputType.safeParse({
+                        if (!result) result = inputType.safeParse({
                             body: req.body,
                             query: req.query,
                             headers: req.headers
