@@ -28,8 +28,12 @@ class Router {
             headers: input.headers
         })
 
+        // Defining it here, so we can get the inference of the inputType
+        type Middleware = (input: z.infer<typeof inputType>,
+                           request: polka.Request) => Response | void
+
         // List of all the functions that will be run on request to the path
-        let executionList: polka.Middleware[] = []
+        let executionList: Middleware[] = []
 
         const result = {
 
@@ -39,43 +43,43 @@ class Router {
              * @param callback The callback that will be run once the type validation is done
              */
             handle: (callback: (_: z.infer<typeof inputType>) => Response) => {
-                executionList.push((req, res) => {
-                    const result = inputType.safeParse({
-                        body: req.body,
-                        query: req.query,
-                        headers: req.headers
-                    })
+                executionList.push((input, _) => callback(input))
 
-                    let data: string
-                    let status: number
+                app[method](path, ...(executionList.map(m => {
+                    return async (req: any, res: any, next: polka.Next) => {
+                        const result = inputType.safeParse({
+                            body: req.body,
+                            query: req.query,
+                            headers: req.headers
+                        })
 
-                    // When the validation succeeds, the callback will be executed
-                    // if not, we will return a Bad-Request.
-                    if (!result.success) {
-                        status = 400;
-                        data = JSON.stringify({message: "Bad request."});
-                    } else {
-                        const response = callback(result.data)
+                        // When the validation succeeds, the callback will be executed
+                        // if not, we will return a Bad-Request.
+                        const response = result.success
+                            ? await m(result.data, req)
+                            : Response.badRequest({message: "Bad request."});
 
-                        status = response.status || 200;
-                        data = response.body || "";
+                        if (typeof response === "undefined")
+                            return next();
+
+                        // The elements we need
+                        const status = response.status || 200;
+                        const data = JSON.stringify(response.body || "");
+
+                        res.writeHead(status, {
+                            "content-type": "application/json;charset=utf-8",
+                            "content-length": Buffer.byteLength(data)
+                        })
+                        res.end(data)
                     }
-
-                    res.writeHead(status, {
-                        "content-type": "application/json;charset=utf-8",
-                        "content-length": Buffer.byteLength(data)
-                    })
-                    res.end(data)
-                })
-
-                app[method](path, ...executionList)
+                })))
             },
 
             /**
              * Adds a middleware
              * @param middleware The middleware function that'll get executed
              */
-            use: (middleware: polka.Middleware) => {
+            use: (middleware: Middleware) => {
                 executionList.push(middleware)
                 return result
             }

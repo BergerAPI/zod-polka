@@ -6,8 +6,16 @@ route.get("/test", {
     body: z.object({
         test: z.string()
     }),
-}).handle((req) => {
-    return Response.ok(req.body.test.toUpperCase())
 })
+    .use((input, _) => {
+        return Date.now() % 2 === 0 ? Response.badGateway({
+            message: input.body.test.toLowerCase()
+        }) : undefined;
+    })
+    .handle((req) => {
+        return Response.ok({
+            result: req.body.test.toUpperCase()
+        })
+    })
 
 app.listen(2000)
