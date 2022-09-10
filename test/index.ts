@@ -3,11 +3,11 @@ import {z} from "zod";
 import {Response} from "../src/response";
 
 route.get("/test", {
-    body: z.any(),
-    headers: z.any(),
-    query: z.any()
+    body: z.object({
+        test: z.string()
+    }),
 }).handle((req) => {
-    return Response.ok("A")
+    return Response.ok(req.body.test.toUpperCase())
 })
 
 app.listen(2000)

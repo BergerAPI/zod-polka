@@ -91,9 +91,13 @@ class Router {
      */
     public get<T extends ZodType,
         Q extends ZodType,
-        A extends ZodType>(path: string, input: { body: T, query: Q, headers: A }) {
+        A extends ZodType>(path: string, input: { body?: T, query?: Q, headers?: A }) {
 
-        return this.makeFn("get", path, input)
+        return this.makeFn("get", path, {
+            body: (input.body ?? z.any()) as T,
+            query: (input.query ?? z.any()) as Q,
+            headers: (input.headers ?? z.any()) as A
+        })
     }
 
     /**
@@ -103,9 +107,13 @@ class Router {
      */
     public put<T extends ZodType,
         Q extends ZodType,
-        A extends ZodType>(path: string, input: { body: T, query: Q, headers: A }) {
+        A extends ZodType>(path: string, input: { body?: T, query?: Q, headers?: A }) {
 
-        return this.makeFn("put", path, input)
+        return this.makeFn("put", path, {
+            body: (input.body ?? z.any()) as T,
+            query: (input.query ?? z.any()) as Q,
+            headers: (input.headers ?? z.any()) as A
+        })
     }
 
 
@@ -116,9 +124,13 @@ class Router {
      */
     public post<T extends ZodType,
         Q extends ZodType,
-        A extends ZodType>(path: string, input: { body: T, query: Q, headers: A }) {
+        A extends ZodType>(path: string, input: { body?: T, query?: Q, headers?: A }) {
 
-        return this.makeFn("post", path, input)
+        return this.makeFn("post", path, {
+            body: (input.body ?? z.any()) as T,
+            query: (input.query ?? z.any()) as Q,
+            headers: (input.headers ?? z.any()) as A
+        })
     }
 
     /**
@@ -128,9 +140,13 @@ class Router {
      */
     public delete<T extends ZodType,
         Q extends ZodType,
-        A extends ZodType>(path: string, input: { body: T, query: Q, headers: A }) {
+        A extends ZodType>(path: string, input: { body?: T, query?: Q, headers?: A }) {
 
-        return this.makeFn("delete", path, input)
+        return this.makeFn("delete", path, {
+            body: (input.body ?? z.any()) as T,
+            query: (input.query ?? z.any()) as Q,
+            headers: (input.headers ?? z.any()) as A
+        })
     }
 
 }
